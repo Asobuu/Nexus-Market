@@ -22,12 +22,13 @@ Es una plataforma que conecta compradores y vendedores. Según el documento guí
 - El inventario nunca puede quedar en negativo.
 - Un pedido ya entregado no se puede volver a modificar.
 - Una devolución solo se puede pedir sobre un pedido que ya fue entregado.
+- Todo cambio en el inventario (entra stock, se reserva, se ajusta, se devuelve) queda guardado como un movimiento aparte, no solo se actualiza el número final.
 
 ### Persistencia
 
 Todas las entidades están anotadas con JPA (`@Entity`) y cada una tiene su repositorio (`JpaRepository`) en el paquete `repository`, para guardarlas en MySQL con Hibernate. La configuración de la base de datos está en `src/main/resources/application.properties`.
 
-> Aviso: esta parte la armé siguiendo la documentación de Spring Data JPA, pero no la pude compilar yo mismo porque en el entorno donde escribí el código no tenía acceso a internet para descargar las dependencias de Maven. Recomiendo correr `mvn compile` o `mvn spring-boot:run` en tu máquina antes de entregar, por si hay que ajustar algo.
+> Aviso: esta parte la armé siguiendo la documentación de Spring Data JPA, pero no la pude compilar yo mismo porque en el entorno donde escribí el código no tenía acceso a internet para descargar las dependencias de Maven. Recomiendo correr `mvn compile` o `mvn spring-boot:run` antes de entregar, por si hay que ajustar algo.
 
 ## 2. Clases del modelo (entidades)
 
@@ -47,9 +48,13 @@ Todas las entidades están anotadas con JPA (`@Entity`) y cada una tiene su repo
 
 **Warehouse**: id, name, location, owner (el vendedor dueño, o null si es del marketplace).
 
-**Product**: id, name, description, type (PHYSICAL o DIGITAL), price, published.
+**Product**: id, name, description, type (PHYSICAL o DIGITAL), price, status (PUBLISHED, SUSPENDED o DISCONTINUED), variants.
+
+**ProductVariant**: la misma referencia de producto pero en otro color, talla o modelo. No siempre se llenan los tres campos (por ejemplo una camiseta puede variar solo en talla).
 
 **Inventory**: product, warehouse, quantity. Une un producto con una bodega. El método `reserve()` no deja que la cantidad quede negativa.
+
+**InventoryMovement**: guarda cada cambio que tuvo un inventario (tipo de movimiento — ingreso, reserva, salida, ajuste o devolución — cantidad y fecha), para tener el historial además del número final.
 
 **Cart**: buyer, items (lista de CartItem). Método `getTotal()` suma los subtotales.
 
@@ -71,15 +76,19 @@ Además de las entidades, agregué una capa de servicios (`Application.service`)
 
 **UserService**: registrar compradores y vendedores.
 
-**ProductService**: publicar un producto nuevo y crearle su inventario inicial en una bodega (si es físico); agregar más stock.
+**ProductService**: publicar un producto nuevo (con su inventario inicial en una bodega, si es físico), agregarle variantes, y cambiar su estado (suspender / descontinuar).
 
-**CartService**: agregar productos al carrito; `checkout()` convierte el carrito en un pedido, reservando el stock de cada producto y dejando el carrito vacío.
+**InventoryService**: todos los cambios de cantidad en un inventario pasan por aquí — ingreso de stock, reserva, ajuste y devolución — y cada uno queda registrado como un `InventoryMovement`.
+
+**CartService**: agregar productos al carrito; `checkout()` convierte el carrito en un pedido, reservando el stock de cada producto (a través de `InventoryService`) y dejando el carrito vacío.
 
 **OrderService**: marcar un pedido como pagado (y generar su factura), crear el envío y marcarlo como entregado.
 
 **ShipmentService**: asignar un operador logístico a un envío.
 
 **ReturnService**: pedir una devolución, aprobarla o rechazarla, y completar el reembolso.
+
+**ReportService**: consultas consolidadas para el administrador/supervisor — total de ventas, cuántos pedidos están pendientes, cuántos productos hay en cada estado, y qué inventarios están bajos de stock.
 
 ## 4. Estructura del proyecto
 
@@ -92,6 +101,8 @@ NexusM/
     ├── enums/
     │   ├── UserStatus.java
     │   ├── ProductType.java
+    │   ├── ProductStatus.java
+    │   ├── MovementType.java
     │   ├── OrderStatus.java
     │   ├── ShipmentStatus.java
     │   └── ReturnStatus.java
@@ -106,7 +117,9 @@ NexusM/
     │   │   └── Supervisor.java
     │   ├── Warehouse.java
     │   ├── Product.java
+    │   ├── ProductVariant.java
     │   ├── Inventory.java
+    │   ├── InventoryMovement.java
     │   ├── Cart.java
     │   ├── CartItem.java
     │   ├── Order.java
@@ -119,10 +132,12 @@ NexusM/
     ├── service/
     │   ├── UserService.java
     │   ├── ProductService.java
+    │   ├── InventoryService.java
     │   ├── CartService.java
     │   ├── OrderService.java
     │   ├── ShipmentService.java
-    │   └── ReturnService.java
+    │   ├── ReturnService.java
+    │   └── ReportService.java
     └── demo/
         └── MarketplaceDemo.java   (crea datos de prueba al arrancar la app)
 ```
@@ -130,5 +145,5 @@ NexusM/
 ## 5. Lo que falta por agregar
 
 - **Controladores REST**: exponer los servicios como endpoints (`@RestController`) para poder probarlos desde Postman o un frontend.
-- **Seguridad**: login y permisos por rol (el proyecto ya trae `spring-boot-starter-security` en el `pom.xml`, pero todavía no está configurado).
+- **Seguridad**: login y permisos por rol (el proyecto ya trae `spring-boot-starter-security` en el `pom.xml`, pero todavía no está configurado). El documento guía pide que toda operación la haga un usuario autenticado, así que esto queda pendiente para una siguiente entrega.
 - **Pruebas unitarias** de los servicios.
