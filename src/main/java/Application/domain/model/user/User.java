@@ -17,6 +17,7 @@ public abstract class User {
     private String fullName;
     private String email;
     private UserStatus status;
+    private String passwordHash;
 
     public User(String fullName, String email) {
         this.fullName = fullName;
@@ -28,6 +29,12 @@ public abstract class User {
     // completar el id que genero la base de datos
     public void assignId(Long id) {
         this.id = id;
+    }
+
+    // el hash lo calcula PasswordServicePort (bcrypt, por ejemplo), aca
+    // solo se guarda el resultado. nunca se guarda la contraseña en texto plano
+    public void assignPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
     // cada subclase dice cual es su rol
