@@ -10,8 +10,14 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
-// una compra ya confirmada. va pasando por varios estados y una vez
-// llega a DELIVERED no se deja tocar mas
+// una compra ya confirmada. siempre avanza en el mismo orden
+// (PENDING_PAYMENT -> PAID -> SHIPPED -> DELIVERED) y una vez llega a
+// DELIVERED no se deja tocar mas. cada salto solo es valido desde el
+// estado inmediatamente anterior, para que no se pueda, por ejemplo,
+// pagar dos veces o entregar algo que nunca se despacho.
+// "ship()" es la excepcion: se puede llamar mas de una vez sin error,
+// porque un pedido con productos de varios vendedores tiene varios
+// envios (ver ShipmentService), y cada uno pasa por aca al despacharse
 @Getter
 @NoArgsConstructor
 public class Order {
@@ -36,23 +42,35 @@ public class Order {
     }
 
     public void pay() {
-        checkNotDelivered();
+        requireStatus(OrderStatus.PENDING_PAYMENT);
         status = OrderStatus.PAID;
     }
 
     public void ship() {
-        checkNotDelivered();
+        if (status == OrderStatus.SHIPPED) {
+            return;
+        }
+        requireStatus(OrderStatus.PAID);
         status = OrderStatus.SHIPPED;
     }
 
     public void deliver() {
-        checkNotDelivered();
+        requireStatus(OrderStatus.SHIPPED);
         status = OrderStatus.DELIVERED;
     }
 
-    private void checkNotDelivered() {
-        if (status == OrderStatus.DELIVERED) {
-            throw new InvalidOrderStateException("el pedido " + id + " ya fue entregado, no se puede modificar");
+    // la usa el mapper de persistencia para reconstruir un pedido ya
+    // guardado, saltandose las validaciones de transicion: esas son para
+    // cuando alguien pide pagar/despachar/entregar, no para cargar un
+    // estado que ya quedo grabado tal cual
+    public void assignStatus(OrderStatus status) {
+        this.status = status;
+    }
+
+    private void requireStatus(OrderStatus expected) {
+        if (status != expected) {
+            throw new InvalidOrderStateException(
+                    "el pedido " + id + " esta en estado " + status + ", se esperaba " + expected);
         }
     }
 

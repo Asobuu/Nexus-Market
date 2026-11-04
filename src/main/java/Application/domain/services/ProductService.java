@@ -1,11 +1,14 @@
 package Application.domain.services;
 
+import Application.domain.enums.AuditEventType;
 import Application.domain.enums.ProductType;
+import Application.domain.model.AuditLog;
 import Application.domain.model.Inventory;
 import Application.domain.model.Product;
 import Application.domain.model.ProductVariant;
 import Application.domain.model.Warehouse;
 import Application.domain.model.user.Seller;
+import Application.domain.ports.out.AuditRepositoryPort;
 import Application.domain.ports.out.InventoryRepositoryPort;
 import Application.domain.ports.out.ProductRepositoryPort;
 import Application.domain.ports.out.ProductVariantRepositoryPort;
@@ -17,13 +20,16 @@ public class ProductService {
     private final InventoryRepositoryPort inventoryRepositoryPort;
     private final InventoryService inventoryService;
     private final ProductVariantRepositoryPort variantRepositoryPort;
+    private final AuditRepositoryPort auditRepositoryPort;
 
     public ProductService(ProductRepositoryPort productRepositoryPort, InventoryRepositoryPort inventoryRepositoryPort,
-                           InventoryService inventoryService, ProductVariantRepositoryPort variantRepositoryPort) {
+                           InventoryService inventoryService, ProductVariantRepositoryPort variantRepositoryPort,
+                           AuditRepositoryPort auditRepositoryPort) {
         this.productRepositoryPort = productRepositoryPort;
         this.inventoryRepositoryPort = inventoryRepositoryPort;
         this.inventoryService = inventoryService;
         this.variantRepositoryPort = variantRepositoryPort;
+        this.auditRepositoryPort = auditRepositoryPort;
     }
 
     public Product publishProduct(Seller seller, String name, String description, ProductType type,
@@ -36,6 +42,9 @@ public class ProductService {
             inventory = inventoryRepositoryPort.save(inventory);
             inventoryService.registerReceipt(inventory, initialStock);
         }
+
+        auditRepositoryPort.log(new AuditLog(AuditEventType.PRODUCT_PUBLISHED, seller.getEmail(), "SELLER",
+                "se publico el producto " + product.getName()));
 
         return product;
     }

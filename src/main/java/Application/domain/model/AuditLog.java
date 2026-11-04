@@ -30,4 +30,11 @@ public class AuditLog {
     public void assignId(String id) {
         this.id = id;
     }
+
+    // la usa el mapper de persistencia: el constructor pone la fecha
+    // actual, al reconstruir un evento ya guardado hay que restaurar la
+    // fecha real en que ocurrio (ver InventoryMovement.assignOccurredAt)
+    public void assignOccurredAt(LocalDateTime occurredAt) {
+        this.occurredAt = occurredAt;
+    }
 }

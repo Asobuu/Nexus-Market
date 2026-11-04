@@ -2,7 +2,9 @@ package Application.domain.services;
 
 import Application.domain.enums.AuditEventType;
 import Application.domain.enums.UserStatus;
+import Application.domain.exceptions.AccountBlockedException;
 import Application.domain.exceptions.DuplicateEmailException;
+import Application.domain.exceptions.InvalidCredentialsException;
 import Application.domain.model.AuditLog;
 import Application.domain.model.AuthToken;
 import Application.domain.model.user.Address;
@@ -48,12 +50,12 @@ public class AuthService {
 
     public AuthToken login(String email, String rawPassword) {
         User user = userRepositoryPort.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("correo o contraseña incorrectos"));
+                .orElseThrow(() -> new InvalidCredentialsException("correo o contraseña incorrectos"));
         if (!passwordServicePort.matches(rawPassword, user.getPasswordHash())) {
-            throw new IllegalArgumentException("correo o contraseña incorrectos");
+            throw new InvalidCredentialsException("correo o contraseña incorrectos");
         }
         if (user.getStatus() != UserStatus.ACTIVE) {
-            throw new IllegalStateException("esta cuenta esta bloqueada");
+            throw new AccountBlockedException("esta cuenta esta bloqueada");
         }
         String token = jwtServicePort.generateToken(user);
         return new AuthToken(token, user.getId(), user.getRoleName());

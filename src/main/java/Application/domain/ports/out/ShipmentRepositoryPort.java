@@ -2,9 +2,11 @@ package Application.domain.ports.out;
 
 import Application.domain.model.Shipment;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ShipmentRepositoryPort {
     Shipment save(Shipment shipment);
     Optional<Shipment> findById(Long id);
+    List<Shipment> findByOrderId(Long orderId);
 }

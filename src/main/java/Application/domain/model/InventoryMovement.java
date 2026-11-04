@@ -29,4 +29,11 @@ public class InventoryMovement {
     public void assignId(Long id) {
         this.id = id;
     }
+
+    // la usa el mapper de persistencia: el constructor pone la fecha
+    // actual, pero al reconstruir un movimiento ya guardado hay que
+    // restaurar la fecha real en que ocurrio
+    public void assignOccurredAt(LocalDateTime occurredAt) {
+        this.occurredAt = occurredAt;
+    }
 }
