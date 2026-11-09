@@ -8,9 +8,11 @@ import Application.adapters.persistence.jpa.entity.SupervisorJpaEntity;
 import Application.adapters.persistence.jpa.entity.UserJpaEntity;
 import Application.domain.model.user.User;
 
-// un UserJpaEntity siempre es en realidad una de sus subclases (tabla
-// unica con discriminador, ver UserJpaEntity); aca se decide a que
-// mapper especifico delegar segun el tipo real del objeto
+// un UserJpaEntity siempre es en realidad una de sus subclases (cada
+// una con su propia tabla independiente - buyers, sellers,
+// administrators, supervisors, logistics_operators -, ver
+// UserJpaEntity); aca se decide a que mapper especifico delegar segun
+// el tipo real del objeto
 public final class UserMapper {
 
     private UserMapper() {

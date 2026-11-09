@@ -1,11 +1,11 @@
 package Application.adapters.persistence.jpa.entity;
 
-import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.NoArgsConstructor;
 
 @Entity
-@DiscriminatorValue("ADMINISTRATOR")
+@Table(name = "administrators")
 @NoArgsConstructor
 public class AdministratorJpaEntity extends UserJpaEntity {
 

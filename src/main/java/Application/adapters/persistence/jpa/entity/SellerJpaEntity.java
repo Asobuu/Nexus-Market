@@ -1,7 +1,7 @@
 package Application.adapters.persistence.jpa.entity;
 
-import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.NoArgsConstructor;
 
 // las bodegas y productos de un vendedor no se mapean aca: se consultan
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 // lectura de un Seller ni crear un ciclo de mapeo Seller -> Product ->
 // Seller -> ... (ver SellerMapper)
 @Entity
-@DiscriminatorValue("SELLER")
+@Table(name = "sellers")
 @NoArgsConstructor
 public class SellerJpaEntity extends UserJpaEntity {
 
