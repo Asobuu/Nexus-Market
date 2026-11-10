@@ -47,6 +47,33 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
+		<!-- Bean Validation (@Valid, @NotBlank, @Email, @Size, @Min, etc. en
+		     los DTOs de adapters/rest/dto) - spring-boot-starter-webmvc NO
+		     la trae por si solo, hay que agregarla aparte -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+		<!-- Jackson (ObjectMapper) - lo usa SecurityConfig para escribir el
+		     JSON de los errores 401/403. Igual que con validation,
+		     spring-boot-starter-webmvc no lo trae incluido por si solo.
+		     Se declara jackson-databind directo (sin version: la maneja
+		     el BOM de spring-boot-starter-parent) porque
+		     spring-boot-starter-json por si solo no lo esta resolviendo -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-json</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+		<!-- JavaTimeModule, para que el ObjectMapper propio de SecurityConfig
+		     pueda serializar LocalDateTime (ver ErrorResponse.timestamp) -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>com.mysql</groupId>

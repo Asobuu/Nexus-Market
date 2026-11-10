@@ -2,6 +2,8 @@ package Application.adapters.security;
 
 import Application.adapters.rest.dto.response.ErrorResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,11 +31,17 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final ObjectMapper objectMapper;
+    // propio, no inyectado: por alguna razon con esta combinacion de
+    // dependencias Spring no esta exponiendo un bean ObjectMapper
+    // autoconfigurado para inyectar aca, asi que se arma uno manual con
+    // JavaTimeModule (necesario para serializar el LocalDateTime de
+    // ErrorResponse.timestamp) y fechas en ISO-8601, no como timestamp numerico
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, ObjectMapper objectMapper) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.objectMapper = objectMapper;
     }
 
     @Bean
